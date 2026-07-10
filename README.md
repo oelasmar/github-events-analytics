@@ -1,15 +1,15 @@
 🛠️ Fase 1: Setup Inicial y Dockerización del Core
 El objetivo es levantar toda la infraestructura local metida en contenedores y dejar listos los servicios cloud gratuitos.
 
-[ ] Repositorio en GitHub y Git Flow: Crea el repositorio, define la estructura de carpetas (/dags, /dbt_project, /src) y bloquea la rama main para forzar el uso de ramas feature/.
+[X] Repositorio en GitHub y Git Flow: Crea el repositorio, define la estructura de carpetas (/dags, /dbt_project, /src) y bloquea la rama main para forzar el uso de ramas feature/.
 
-[ ] Entorno de Python con uv / poetry: Configura el entorno virtual local para el desarrollo de scripts y soporte del IDE.
+[X] Entorno de Python con uv / poetry: Configura el entorno virtual local para el desarrollo de scripts y soporte del IDE.
 
-[ ] Supabase Cloud Setup: * Crea el Bucket github-events-bronze en Supabase Storage.
+[X] Supabase Cloud Setup: * Crea el Bucket github-events-bronze en Supabase Storage.
 
 Guarda las credenciales de conexión a Postgres y las API keys en un archivo .env local.
 
-[ ] Infraestructura con Docker Compose: Configura un docker-compose.yml robusto que levante:
+[X] Infraestructura con Docker Compose: Configura un docker-compose.yml robusto que levante:
 
 Apache Airflow (imagen oficial ligera o Astro CLI) mapeando los volúmenes de /dags.
 
@@ -84,3 +84,53 @@ El escaparate final que consumirá los datos modelados por dbt desde la nube.
 
 RULE 2: EXPERT GUIDE
 ¿Qué te parece esta distribución de las fases? Si estás de acuerdo, podemos empezar directamente redactando el archivo docker-compose.yml de la Fase 1 para dejar Airflow y tu entorno de desarrollo local perfectamente configurados.
+
+
+
+
+
+
+
+
+
+
+Así funcionará tu flujo de CI/CD:
+[ Rama feature/mi-modelo ] ──────────► [ Pull Request (CI) ] ──────────► [ Merge a main (CD) ]
+          │                                      │                                    │
+    Ejecuta en DEV:                        Ejecuta en STAGING:                  Ejecuta en PROD:
+   Esquema de la tarea                    Esquema efímero del PR              Esquema definitivo
+ (ej. dbt_initial_setup)                  (ej. analytics_pr_12)                 (ej. analytics)
+          │                                      │                                    │
+          ▼                                      ▼                                    ▼
+   Supabase Cloud                         Supabase Cloud                       Supabase Cloud
+
+   
+1. En tu máquina local (Entorno DEV)
+Trabajas en tu rama feature/initial-setup o similares.
+
+En tu archivo .env local tienes definido DBT_SCHEMA=dbt_desarrollo (o el nombre de tu feature).
+
+Cada vez que haces dbt run en tu terminal, dbt crea y actualiza las tablas dentro de Supabase Cloud pero aisladas en ese esquema de desarrollo (dbt_desarrollo). No rompes nada de producción.
+
+2. Al abrir el Pull Request (Entorno STAGING / CI)
+Cuando subes tu rama a GitHub y abres un Pull Request hacia main, se dispara automáticamente un Workflow de GitHub Actions.
+
+Este workflow instala Python y dbt, lee tus credenciales secretas de Supabase y ejecuta:
+
+Bash
+dbt build --vars "{schema_override: analytics_pr_${{ github.event.number }}}"
+La magia del CI: dbt creará un esquema temporal en tu Supabase llamado, por ejemplo, analytics_pr_12 (usando el número de tu PR). Ejecutará allí todos los modelos y pasará los dbt test de calidad de datos.
+
+El borrado: Si todos los tests pasan con éxito, el propio workflow lanza un comando SQL (DROP SCHEMA ... CASCADE) para borrar ese esquema efímero de Supabase y no consumir espacio. El PR recibe el "check verde" de aprobado.
+
+3. Al hacer Merge a main (Entorno PROD / CD)
+Una vez fusionado el código en la rama main, se dispara el segundo workflow de GitHub Actions.
+
+Este workflow ejecuta el dbt definitivo apuntando al esquema productivo final (por ejemplo, analytics).
+
+Al ejecutar un dbt run de producción, tus tablas de hechos y dimensiones finales se actualizan de forma incremental, listas para que Power BI consuma los datos limpios.
+
+¿Por qué esta estructura es una genialidad para tu portfolio?
+Porque le demuestra a cualquier equipo técnico que sabes trabajar con Slim CI (integración continua ligera) en la nube sin incurrir en costes extras de infraestructura, y que tratas el código de datos con el mismo rigor que si fuera software de aplicación.
+
+Con esto claro y tu archivo .env configurado, ¿pasamos a escribir el docker-compose.yml para levantar Apache Airflow localmente y cerrar por completo la Fase 1?
