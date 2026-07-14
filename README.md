@@ -18,7 +18,7 @@ Las dependencias necesarias para que Airflow comparta red con tus futuros script
 📥 Fase 2: Ingesta, Almacenamiento y Carga (El script de Python - EL)
 Aquí construimos el script que moverá los datos, pero ya pensando en que será ejecutado de manera automática.
 
-[ ] Script de Extracción (Capa Bronze): Desarrolla el script en Python que consulta la API de Eventos Públicos de GitHub y sube el archivo .json particionado por fecha (ej. ano=2026/mes=07/dia=01/events_xxx.json) a tu Bucket de Supabase Storage.
+[X] Script de Extracción (Capa Bronze): Desarrolla el script en Python que consulta la API de Eventos Públicos de GitHub y sube el archivo .json particionado por fecha (ej. ano=2026/mes=07/dia=01/events_xxx.json) a tu Bucket de Supabase Storage.
 
 [ ] Script de Ingesta (Capa Silver - Raw): Añade la lógica para leer ese archivo JSON recién guardado (o el payload de la API) e insertarlo en formato raw (tipo de datos JSONB de Postgres) en la tabla raw.github_events de Supabase.
 
@@ -85,8 +85,20 @@ El escaparate final que consumirá los datos modelados por dbt desde la nube.
 RULE 2: EXPERT GUIDE
 ¿Qué te parece esta distribución de las fases? Si estás de acuerdo, podemos empezar directamente redactando el archivo docker-compose.yml de la Fase 1 para dejar Airflow y tu entorno de desarrollo local perfectamente configurados.
 
+PROBLEMAS
 
+1. Al guardar por carpetas de fecha que pasa si entiendo, pero que ocurre si el extract se ejecuta a las 23:59 del dia 12 y la capa silver a las 00:01 del dia 13?
 
+Opción A: La solución definitiva con Airflow (Contexto de Ejecución)
+Cuando implementes Airflow, este problema desaparece por completo. Airflow no utiliza la hora del reloj del servidor (datetime.now()); utiliza variables de contexto llamadas data_interval_start (o la clásica execution_date).
+
+Si el DAG corresponde a la ventana de las 23:00 a las 00:00:
+
+Airflow sabe que esa tarea pertenece lógicamente al día 12.
+
+Airflow le pasará exactamente la misma fecha como parámetro tanto al script de Extract como al de Silver (por ejemplo, a través de variables de entorno o argumentos de terminal).
+
+Tu script de Silver no calculará el día actual con now(), sino que recibirá un parámetro diciendo: "Procesa la carpeta del día 12". Así, da igual si el script se ejecuta a las 00:01, a las 03:00 o tres días después; la idempotencia está garantizada.
 
 
 
