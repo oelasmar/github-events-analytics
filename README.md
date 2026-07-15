@@ -20,7 +20,19 @@ Aquí construimos el script que moverá los datos, pero ya pensando en que será
 
 [X] Script de Extracción (Capa Bronze): Desarrolla el script en Python que consulta la API de Eventos Públicos de GitHub y sube el archivo .json particionado por fecha (ej. ano=2026/mes=07/dia=01/events_xxx.json) a tu Bucket de Supabase Storage.
 
-[ ] Script de Ingesta (Capa Silver - Raw): Añade la lógica para leer ese archivo JSON recién guardado (o el payload de la API) e insertarlo en formato raw (tipo de datos JSONB de Postgres) en la tabla raw.github_events de Supabase.
+[X] Script de Ingesta (Capa Silver - Raw): Añade la lógica para leer ese archivo JSON recién guardado (o el payload de la API) e insertarlo en formato raw (tipo de datos JSONB de Postgres) en la tabla raw.github_events de Supabase.
+
+-- 1. Crear el esquema analítico raw para diferenciarlo de las tablas de desarrollo
+CREATE SCHEMA IF NOT EXISTS raw;
+
+-- 2. Crear la tabla para la ingesta del JSONB
+CREATE TABLE IF NOT EXISTS raw.github_events (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    event_id VARCHAR(255) UNIQUE,                -- ID único del evento de GitHub (evita duplicados)
+    event_type VARCHAR(100) NOT NULL,            -- Tipo de evento (PushEvent, WatchEvent, etc.)
+    payload JSONB NOT NULL,                      -- El JSON crudo del evento
+    loaded_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
 
 🎛️ Fase 3: Orquestación Local con Apache Airflow
 Antes de pasar a dbt, dejamos el motor de ingesta automatizado y controlado por tiempo.

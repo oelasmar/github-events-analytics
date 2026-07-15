@@ -65,7 +65,7 @@ def upload_to_supabase_bronze(events_data: list):
                 file=file_to_upload,
                 file_options={"content-type": "application/json"}
             )
-        print(f"[{datetime.now()}] ¡Subida completada con éxito!")
+        print(f"[{datetime.now()}] Subida completada con éxito.")
     except Exception as e:
         print(f"Error crítico al subir los datos a Supabase Storage: {e}")
         raise e
