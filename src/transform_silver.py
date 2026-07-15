@@ -5,9 +5,10 @@ from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client, Client, ClientOptions
 import argparse
+import sys
 
 # Configuración básica de logs
-logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s", stream=sys.stdout)
 
 # Cargar variables de entorno
 load_dotenv()

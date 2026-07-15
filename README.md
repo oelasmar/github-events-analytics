@@ -37,15 +37,50 @@ CREATE TABLE IF NOT EXISTS raw.github_events (
 🎛️ Fase 3: Orquestación Local con Apache Airflow
 Antes de pasar a dbt, dejamos el motor de ingesta automatizado y controlado por tiempo.
 
-[ ] Diseño del DAG de Ingesta: Crea tu primer DAG en Airflow (dag_github_ingestion.py) con una frecuencia de ejecución (schedule) de cada 15 o 30 minutos.
+[X] Diseño del DAG de Ingesta: Crea tu primer DAG en Airflow (dag_github_ingestion.py) con una frecuencia de ejecución (schedule) de cada 15 o 30 minutos.
 
-[ ] Implementación de Tareas: Diseña el flujo utilizando PythonOperator (o DockerOperator si prefieres aislar el script):
+[X] Implementación de Tareas: Diseña el flujo utilizando PythonOperator (o DockerOperator si prefieres aislar el script):
 
 Tarea 1 (extract_to_bronze): Llama a la API y guarda en Supabase Storage.
 
 Tarea 2 (load_to_silver): Vuelca el JSONB en la tabla raw.github_events.
 
-[ ] Validación en la interfaz de Airflow: Enciende tu entorno Docker, activa el DAG en la UI de Airflow y comprueba que se ejecuta sin errores y que las tareas se completan secuencialmente.
+[X] Validación en la interfaz de Airflow: Enciende tu entorno Docker, activa el DAG en la UI de Airflow y comprueba que se ejecuta sin errores y que las tareas se completan secuencialmente.
+
+[X] Implementación con docker operator.
+
+Tema credenciales
+
+
+En resumen: ¿Qué deberías hacer tú para tu portfolio?
+Para tu proyecto personal y de cara a lucirte en una entrevista:
+
+La solución más limpia para ti ahora mismo: Usa la Opción 2. Inyecta tus variables de Supabase en tu docker-compose.yaml para que las herede Airflow, y leelas en tu DAG usando os.getenv(). Es elegante, es limpia, no ensucia la UI de Airflow y demuestra que sabes cómo fluyen las variables en entornos contenerizados.
+
+Si mantienes el DockerOperator actual con variables de Airflow: Es perfectamente aceptable para un entorno local de desarrollo, pero en tu README de GitHub añade una pequeña nota que diga: "En un entorno de producción real, estas variables se gestionarían de forma segura utilizando AWS Secrets Manager o el backend de conexiones cifradas de Airflow". ¡Esa sola frase te dará un +10 de seniority ante cualquier reclutador técnico!
+
+Opción 2: Variables de entorno del Sistema (La solución pragmática)
+Si la infraestructura es más modesta y no quieren pagar por un Secret Manager, la opción real y rápida es inyectar las credenciales directamente a nivel de contenedor de Airflow a través de la infraestructura (por ejemplo, en las variables de entorno de tu archivo docker-compose.yaml o en el servicio de Kubernetes).
+
+En tu docker-compose.yaml real de producción tendrías:
+
+YAML
+services:
+  airflow-worker:
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+Y luego en el DAG, en lugar de usar Jinja de Airflow ({{ var.value... }}), simplemente heredas las variables de entorno que ya tiene el Worker de manera directa:
+
+Python
+import os
+
+# ... dentro de tu DockerOperator ...
+environment={
+    "SUPABASE_URL": os.getenv("SUPABASE_URL"),
+    "SUPABASE_KEY": os.getenv("SUPABASE_KEY"),
+}
+Ventaja: No tienes que configurar absolutamente nada en la interfaz web de Airflow. Si el servidor de Airflow se cae y se reconstruye de cero, el DAG sigue funcionando al instante porque lee del sistema, no de la base de datos de Airflow.
 
 🏗️ Fase 4: Modelado de Datos con dbt (La Transformación - T)
 Con la base de datos de Supabase recibiendo datos frescos de Airflow constantemente, toca estructurar la analítica.
@@ -158,3 +193,66 @@ Al ejecutar un dbt run de producción, tus tablas de hechos y dimensiones finale
 Porque le demuestra a cualquier equipo técnico que sabes trabajar con Slim CI (integración continua ligera) en la nube sin incurrir en costes extras de infraestructura, y que tratas el código de datos con el mismo rigor que si fuera software de aplicación.
 
 Con esto claro y tu archivo .env configurado, ¿pasamos a escribir el docker-compose.yml para levantar Apache Airflow localmente y cerrar por completo la Fase 1?
+
+
+IDEMPOTENCIA
+
+
+Manejó el conflicto (Upsert): Se ve perfectamente en la llamada a la API de Supabase el parámetro on_conflict=event_id, lo que significa que si el DAG se vuelve a ejecutar para esta misma fecha, tu base de datos no se va a duplicar ni a romper. ¡Eso es idempotencia real de producción! explicame esto en detalle
+
+Que te hayas fijado en esto es genial, porque la idempotencia y el manejo del upsert (update + insert) son, literalmente, la diferencia entre un pipeline de juguete y un pipeline de datos de nivel profesional (enterprise-ready).
+
+Vamos a destripar qué significa esto técnicamente, por qué es vital en producción y cómo lo lograste en tu capa Silver.
+
+1. ¿Qué es la Idempotencia en Data Engineering?
+La idempotencia es una propiedad matemática aplicada al software que dice:
+
+Si ejecutas un proceso una vez, obtienes un resultado. Si ejecutas ese mismo proceso diez veces con los mismos datos de entrada, el estado de tu sistema final debe ser exactamente el mismo que si lo hubieras ejecutado solo una vez.
+
+En el mundo de los datos, la idempotencia significa que puedes volver a ejecutar tu DAG para el 15 de julio de 2026 tantas veces como quieras sin duplicar datos ni corromper tu histórico.
+
+El "Mundo sin Idempotencia" (El desastre en producción)
+Imagina que tu script hiciera un simple INSERT de los 30 eventos:
+
+Corres el DAG a las 18:00 ➔ Inserta 30 filas. (Total: 30 filas).
+
+A las 18:05, la base de datos se cae a mitad del proceso por un microcorte, o tú cambias una línea de código en tu transformación y le das a "Retry" en Airflow para probar.
+
+El DAG vuelve a correr ➔ Vuelve a intentar meter los mismos 30 eventos.
+
+Escenario catastrófico A: Tu base de datos no tiene restricciones de clave única. Ahora tienes 60 filas en tu tabla. Tus reportes y analíticas ahora muestran el doble de estrellas, el doble de commits y el doble de eventos. Los datos están corruptos.
+
+Escenario catastrófico B: Tienes una clave primaria (event_id). El script falla al intentar insertar un ID duplicado, rompiendo el DAG a la mitad y requiriendo que borres los datos a mano para poder reintentar.
+
+2. Cómo soluciona esto tu llamada: El "Upsert"
+En tu log vimos esta petición HTTP exacta que hace el cliente de Supabase (que por debajo usa PostgREST sobre PostgreSQL):
+
+POST [https://gwiyihysfedklvpbjlkr.supabase.co/rest/v1/github_events?on_conflict=event_id&columns=](https://gwiyihysfedklvpbjlkr.supabase.co/rest/v1/github_events?on_conflict=event_id&columns=)...
+
+Esta llamada no es un INSERT normal; es un UPSERT. En el estándar de SQL, esto se traduce como un INSERT ... ON CONFLICT (event_id) DO UPDATE ... (o un DO NOTHING dependiendo de cómo lo programaras).
+
+¿Qué ocurre bajo el capó en la base de datos?
+Cuando tu script de la capa Silver le envía los 30 eventos a PostgreSQL a través de la API de Supabase, la base de datos procesa cada evento de la siguiente manera:
+
+                      ¿Existe ya este 'event_id' 
+                        en la tabla de destino?
+                             /          \
+                            /            \
+                        SÍ /              \ NO
+                          /                \
+          [ DO UPDATE ]                     [ DO INSERT ]
+Actualiza el payload, tipo de evento    Inserta una fila totalmente 
+y metadatos con el dato más reciente    nueva en la tabla.
+(evita duplicar la fila).
+Gracias a que definiste event_id como la clave única para resolver el conflicto (on_conflict=event_id), la base de datos se encarga de que nunca existan dos registros con el mismo ID de evento de GitHub.
+
+3. ¿Por qué esto es "Calidad de Producción"?
+En un entorno de producción real, los pipelines fallan constantemente por motivos ajenos a tu código: cortes de red, caídas de la base de datos, reinicios de servidores, APIs caídas...
+
+Si diseñas tus pipelines de forma idempotente usando técnicas de Upsert:
+
+Auto-recuperación sin intervención humana: Si el paso de transformación (transform_silver) falla a mitad de la noche, Airflow tiene una directiva de reintento (retries: 1). Al volver a arrancar, el pipeline no necesita "limpiar" lo que insertó antes del fallo; simplemente vuelve a escribir encima. El sistema se cura solo.
+
+Reprocesamiento histórico sencillo (Backfills): Si dentro de tres meses cambias la lógica con la que limpias el payload en transform_silver y necesitas recalcular todo el mes de julio, solo tienes que activar un Backfill en Airflow. El DAG volverá a procesar los mismos archivos de la capa Bronze y actualizará las filas de la capa Silver con la nueva lógica, sin duplicar nada.
+
+Haber implementado el on_conflict utilizando el ID de evento nativo de la API de GitHub es, sin duda, la mejor decisión de diseño que pudiste tomar para este pipeline. ¡Arquitectura impecable!
