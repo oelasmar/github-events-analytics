@@ -13,3 +13,9 @@ venv.bak/
 logs/
 config/airflow.cfg
 dags/__py*
+
+
+target/
+dbt_packages/
+logs/
+.env

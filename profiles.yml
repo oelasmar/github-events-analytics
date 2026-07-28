@@ -1,0 +1,24 @@
+dbt_github_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('SUPABASE_DB_HOST') }}"
+      user: "{{ env_var('SUPABASE_DB_USER') }}"
+      password: "{{ env_var('SUPABASE_DB_PASSWORD') }}"
+      port: 6543 # O 6543 si usas el Transaction Pooler de Supabase
+      dbname: postgres
+      schema: "{{ env_var('DBT_SCHEMA_DEV') }}" # Esquema donde dbt creará las tablas
+      threads: 4
+      keepalives_idle: 0
+
+    prod:
+      type: postgres
+      host: "{{ env_var('SUPABASE_DB_HOST') }}"
+      user: "{{ env_var('SUPABASE_DB_USER') }}"
+      password: "{{ env_var('SUPABASE_DB_PASSWORD') }}"
+      port: 6543 # O 6543 si usas el Transaction Pooler de Supabase
+      dbname: postgres
+      schema: "{{ env_var('DBT_SCHEMA_PROD') }}" # Esquema donde dbt creará las tablas
+      threads: 4
+      keepalives_idle: 0

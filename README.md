@@ -85,13 +85,13 @@ Ventaja: No tienes que configurar absolutamente nada en la interfaz web de Airfl
 🏗️ Fase 4: Modelado de Datos con dbt (La Transformación - T)
 Con la base de datos de Supabase recibiendo datos frescos de Airflow constantemente, toca estructurar la analítica.
 
-[ ] Inicializar dbt-postgres: Inicializa el proyecto dentro de tu repositorio (dbt init). Configura el profiles.yml local apuntando a Supabase.
+[X] Inicializar dbt-postgres: Inicializa el proyecto dentro de tu repositorio (dbt init). Configura el profiles.yml local apuntando a Supabase.
 
-[ ] Capa de Staging (dbt): Crea modelos para desanidar el campo JSONB de raw.github_events usando la sintaxis nativa de Postgres (payload->>'action'), limpiar timestaps y renombrar a snake_case.
+[X] Capa de Staging (dbt): Crea modelos para desanidar el campo JSONB de raw.github_events usando la sintaxis nativa de Postgres (payload->>'action'), limpiar timestaps y renombrar a snake_case.
 
-[ ] Estrategia Incremental: Configura tus modelos de Staging o Hechos como materialized='incremental' basándote en la columna created_at, garantizando que dbt solo procese datos nuevos en cada ejecución para ahorrar recursos.
+[X] Estrategia Incremental: Configura tus modelos de Staging o Hechos como materialized='incremental' basándote en la columna created_at, garantizando que dbt solo procese datos nuevos en cada ejecución para ahorrar recursos.
 
-[ ] Capa de Marts (Modelo Dimensional Kimball): Desarrolla los modelos finales:
+[X] Capa de Marts (Modelo Dimensional Kimball): Desarrolla los modelos finales:
 
 dim_usuarios y dim_repositorios.
 
