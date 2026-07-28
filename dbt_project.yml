@@ -12,11 +12,8 @@ profile: 'dbt_github_analytics'
 # The `model-paths` config, for example, states that models in this project can be
 # found in the "models/" directory. You probably won't need to change these!
 model-paths: ["dbt_github_analytics/models"]
-analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
+test-paths: ["dbt_github_analytics/tests"]
+macro-paths: ["dbt_github_analytics/macros"]
 
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"

@@ -4,7 +4,7 @@ WITH github_events AS (
 ),
 
 users AS (
-    SELECT
+    SELECT distinct
         actor_id                                        AS user_id,
         actor_username                                  AS username,
         CASE 
