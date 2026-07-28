@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: fct_github_events
+    description: "Tabla de hechos incremental con todos los eventos de GitHub procesados."
+    columns:
+      - name: event_id
+        description: "Identificador único del evento."
+        tests:
+          - unique
+          - not_null
+
+      - name: actor_id
+        description: "Clave foránea hacia la dimensión de usuarios."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_github_users')
+              field: user_id
+
+      - name: repository_id
+        description: "Clave foránea hacia la dimensión de repositorios."
+        tests:
+          - relationships:
+              to: ref('dim_github_repositories')
+              field: repository_id
+
+      - name: event_type
+        description: "Tipo de evento de GitHub."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              value_set: ['PushEvent', 'CreateEvent', 'DeleteEvent', 'PullRequestEvent', 'IssuesEvent', 'WatchEvent', 'ForkEvent']
+
+      - name: event_created_at
+        description: "Timestamp de creación del evento."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: "'2020-01-01'"
+              max_value: "'2030-12-31'"
+
+  - name: dim_github_users
+    description: "Dimensión de usuarios y bots."
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_github_repositories
+    description: "Dimensión de proyectos y repositorios."
+    columns:
+      - name: repository_id
+        tests:
+          - unique
+          - not_null

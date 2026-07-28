@@ -5,7 +5,7 @@ WITH github_events AS (
 ),
 
 repositories AS (
-    SELECT
+    SELECT distinct
         repository_id,
         repository_name,
         SPLIT_PART(repository_name, '/', 1)             AS repository_owner,

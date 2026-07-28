@@ -100,14 +100,14 @@ fct_eventos_github (Tabla de hechos conectada a las dimensiones mediante claves 
 🧪 Fase 5: Calidad de Datos, Documentación y Cierre del DAG
 Aseguramos la robustez del modelo y conectamos dbt con el orquestador local.
 
-[ ] Tests de dbt: Implementa tests de unicidad (unique), no nulos (not_null) e integridad referencial (relationships) en el archivo schema.yml.
+[X] Tests de dbt: Implementa tests de unicidad (unique), no nulos (not_null) e integridad referencial (relationships) en el archivo schema.yml.
 
-[ ] Macros de dbt: Escribe alguna macro en Jinja útil para el proyecto (ej. limpieza de texto en nombres de repositorios o conversión de zonas horarias).
+[X] Macros de dbt: Escribe alguna macro en Jinja útil para el proyecto (ej. limpieza de texto en nombres de repositorios o conversión de zonas horarias).
 
-[ ] Cierre del bucle en Airflow: Integra dbt en tu DAG local de Airflow utilizando Cosmos (de Astronomer) o un BashOperator. Ahora el DAG completo hará:
+[X] Cierre del bucle en Airflow: Integra dbt en tu DAG local de Airflow utilizando Cosmos (de Astronomer) o un BashOperator. Ahora el DAG completo hará:
 Python Extract ➡️ Python Load ➡️ dbt run/test.
 
-[ ] Documentación: Genera el catálogo de datos con dbt docs generate.
+[X] Documentación: Genera el catálogo de datos con dbt docs generate.
 
 🚀 Fase 6: CI/CD Automatizado con GitHub Actions
 El código de dbt y de los DAGs se automatiza para asegurar que los cambios no rompan la base de datos de Supabase.

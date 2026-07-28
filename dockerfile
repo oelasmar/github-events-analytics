@@ -8,6 +8,6 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv sync --frozen --no-cache
 
-COPY src/ ./src/
+COPY . .
 
 CMD ["uv", "run", "python", "./src/transform_silver.py"]
