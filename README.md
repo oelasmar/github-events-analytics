@@ -15,7 +15,7 @@ Pipeline de *Analytics Engineering* end-to-end diseñado bajo la arquitectura Me
 
 ```mermaid
 graph LR
-    subgraph "Medallion Architecture (Supabase)"
+    subgraph "Arquitectura Medallion (Supabase)"
         GH_API[GitHub REST API] -->|Raw_Ingestion_Python| BRONZE[(Bronze Layer Storage: github-events-bronze)]
         BRONZE -->|Transformation_Python| SILVER[(Silver Layer: github_events)]
         SILVER -->|dbt_Models| GOLD[(Gold Layer: dim_users, dim_repos, fct_events)]
@@ -46,7 +46,7 @@ graph TD
 ```mermaid
 graph TD
 
-    subgraph "Continuous Integration (CI - Pull Request)"
+    subgraph "CI - Pull Request DEV"
         PR[PR a 'dev'] -->|Triggers Workflow| CI_ACTION[GitHub Actions CI]
         CI_ACTION -->|dbt build| EPHEMERAL_DB[(analytics_pr_X_*)]
         CI_ACTION -->|Data Tests & Quality Checks| TEST_RESULT{¿Tests OK?}
@@ -59,7 +59,7 @@ graph TD
 ```mermaid
 graph TD
 
-    subgraph "Continuous Deployment (CD - Merge to Main)"
+    subgraph "CD - Merge Main"
         MERGE[Merge a 'master'] -->|Triggers Workflow| CD_ACTION[GitHub Actions CD]
         CD_ACTION -->|dbt build| PROD_DB[(prod_analytics)]
     end
