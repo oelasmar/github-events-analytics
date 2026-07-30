@@ -24,4 +24,4 @@ select
     -- payload->'payload'->>'head'                 AS head_commit_sha,
     -- payload->'payload'->>'before'               AS before_commit_sha,
     loaded_at
-from raw_github_events
+from raw_github_events  
