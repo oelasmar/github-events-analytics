@@ -112,7 +112,7 @@ Python Extract ➡️ Python Load ➡️ dbt run/test.
 🚀 Fase 6: CI/CD Automatizado con GitHub Actions
 El código de dbt y de los DAGs se automatiza para asegurar que los cambios no rompan la base de datos de Supabase.
 
-[ ] Configurar GitHub Secrets: Sube de forma segura las credenciales de Supabase a los secretos del repositorio.
+[X] Configurar GitHub Secrets: Sube de forma segura las credenciales de Supabase a los secretos del repositorio.
 
 [ ] Workflow de CI (Pull Request / Slim CI): Crea el workflow que se dispara al abrir un PR. Debe ejecutar dbt build contra un esquema efímero en Supabase (ej. analytics_pr_12) y pasar los tests. Si todo es correcto, añade un paso de SQL para aplicar un DROP SCHEMA y limpiar Supabase.
 
