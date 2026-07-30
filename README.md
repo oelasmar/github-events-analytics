@@ -9,8 +9,6 @@ Pipeline de *Analytics Engineering* end-to-end diseñado bajo la arquitectura Me
 ![uv](https://img.shields.io/badge/uv-Package_Manager-DE5FE9?style=for-the-badge)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=for-the-badge&logo=https://cdn.simpleicons.org/githubactions/white)
 
----
-
 ## Arquitectura
 
 ### 1. Diagrama End-to-End (Medallion)
@@ -66,7 +64,7 @@ graph TD
         CD_ACTION -->|dbt build| PROD_DB[(prod_analytics)]
     end
 ```
----
+
 
 ## Tech Stack
 
@@ -81,7 +79,7 @@ graph TD
 | **Environment & Tooling** | `uv` , `psycopg2` |
 | **Version Control** | Git / GitHub (Git Flow: `feature/*` ➔ `dev` ➔ `main`) |
 
----
+
 
 ## Características principales
 * **Entorno Determinista con `uv`:** Uso de `uv` como gestor de paquetes de Python garantizando builds reproducibles tanto en local como en los runners de GitHub Actions (`uv run dbt deps` / `uv run dbt build`).
@@ -97,7 +95,7 @@ graph TD
 
 * **Seguridad y Gestión de Credenciales:** Aislamiento de variables sensibles mediante archivos `.env` en desarrollo local y la inyección segura de credenciales (`SUPABASE_DB_*`) usando **GitHub Repository Secrets** en los flujos de CI/CD.
 
----
+
 
 ## Resultados
 
