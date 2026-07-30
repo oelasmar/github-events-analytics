@@ -124,7 +124,7 @@ graph TD
 ![Gold Layer 3](/images/gold_layer_3.png)
 
 
-##@ 2. Orquestación
+### 2. Orquestación
 
 ### - DAG
 
