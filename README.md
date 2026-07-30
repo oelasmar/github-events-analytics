@@ -79,8 +79,6 @@ graph TD
 | **Environment & Tooling** | `uv` , `psycopg2` |
 | **Version Control** | Git / GitHub (Git Flow: `feature/*` ➔ `dev` ➔ `main`) |
 
-
-
 ## Características principales
 * **Entorno Determinista con `uv`:** Uso de `uv` como gestor de paquetes de Python garantizando builds reproducibles tanto en local como en los runners de GitHub Actions (`uv run dbt deps` / `uv run dbt build`).
 * **Arquitectura Medallion en Supabase:**
@@ -99,44 +97,44 @@ graph TD
 
 ## Resultados
 
-### 1. Almacenamiento
+## 1. Almacenamiento
 
-#### - Capa Bronze
+### - Capa Bronze
 
 ![Bronze Layer](/images/bronze_layer.png)
 
-#### - Capa Silver
+### - Capa Silver
 
 ![Silver Layer](/images/silver_layer.png)
 
-#### - Gold
+### - Gold
 
 ![Gold Layer](/images/gold_layer.png)
 
-#### - Gold --- *fct_github_events*
+### - Gold --- *fct_github_events*
 
 ![Gold Layer 1](/images/gold_layer_1.png)
 
-#### - Gold --- *dim_github_users*
+### - Gold --- *dim_github_users*
 
 ![Gold Layer 2](/images/gold_layer_2.png)
 
-#### - Gold --- *dim_github_repositories*
+### - Gold --- *dim_github_repositories*
 
 ![Gold Layer 3](/images/gold_layer_3.png)
 
 
-### 2. Orquestación
+## 2. Orquestación
 
-#### - DAG
+### - DAG
 
 ![Airflow](/images/airflow_dag.png)
 
-#### - Esquema
+### - Esquema
 
 ![Airflow Schema](/images/airflow_dag_schema.png)
 
-#### - Ejecución
+### - Ejecución
 
 ![Airflow Execution](/images/airflow_dag_execution.png)
 
