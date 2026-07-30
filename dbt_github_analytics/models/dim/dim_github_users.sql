@@ -14,4 +14,3 @@ users AS (
     FROM github_events
 )
 
-select * from users
