@@ -107,19 +107,19 @@ graph TD
 
 ![Silver Layer](/images/silver_layer.png)
 
-### - Gold
+### - Capa Gold
 
 ![Gold Layer](/images/gold_layer.png)
 
-### - Gold --- *fct_github_events*
+### - Capa Gold --- *fct_github_events*
 
 ![Gold Layer 1](/images/gold_layer_1.png)
 
-### - Gold --- *dim_github_users*
+### - Capa Gold --- *dim_github_users*
 
 ![Gold Layer 2](/images/gold_layer_2.png)
 
-### - Gold --- *dim_github_repositories*
+### - Capa Gold --- *dim_github_repositories*
 
 ![Gold Layer 3](/images/gold_layer_3.png)
 
