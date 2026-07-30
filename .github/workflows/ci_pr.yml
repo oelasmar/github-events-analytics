@@ -45,10 +45,10 @@ jobs:
           echo "Ejecutando dbt build contra el esquema: $PR_SCHEMA"
           uv run dbt build --project-dir . --profiles-dir .
 
-      - name: Cleanup - Eliminar esquema efímero en Supabase
-        if: always() # Se ejecuta SIEMPRE (incluso si dbt build falla o se cancela)
+      - name: Cleanup - Eliminar esquemas efímeros en Supabase
+        if: always() # Se ejecuta siempre
         run: |
-          echo "Limpiando el esquema efímero: $PR_SCHEMA"
+          echo "Limpiando esquemas que empiezan por: $PR_SCHEMA"
           uv run python -c "
           import psycopg2, os
           
@@ -61,11 +61,23 @@ jobs:
           )
           conn.autocommit = True
           cur = conn.cursor()
-          schema_name = os.getenv('PR_SCHEMA')
+          schema_prefix = os.getenv('PR_SCHEMA') + '%'
           
-          # Elimina el esquema y todo su contenido (CASCADE)
-          cur.execute(f'DROP SCHEMA IF EXISTS \"{schema_name}\" CASCADE;')
-          print(f'Esquema {schema_name} eliminado correctamente de Supabase.')
+          # 1. Consulta todos los esquemas que empiezan por el prefijo del PR (ej. analytics_pr_9_%)
+          cur.execute('''
+              SELECT schema_name 
+              FROM information_schema.schemata 
+              WHERE schema_name LIKE %s;
+          ''', (schema_prefix,))
+          
+          schemas_to_drop = [row[0] for row in cur.fetchall()]
+          
+          # 2. Borra cada esquema encontrado de forma iterativa
+          for schema in schemas_to_drop:
+              print(f'Eliminando esquema: {schema}')
+              cur.execute(f'DROP SCHEMA IF EXISTS \"{schema}\" CASCADE;')
+              
+          print(f'Limpieza completada para el prefijo: {schema_prefix}')
           cur.close()
           conn.close()
           "
