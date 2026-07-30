@@ -18,4 +18,4 @@ repositories AS (
     FROM github_events
 )
 
-SELECT * FROM repositories   
+SELECT * FROM repositories
