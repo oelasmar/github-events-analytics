@@ -14,7 +14,10 @@ logs/
 config/airflow.cfg
 dags/__py*
 
-
+# dbt local state & metadata
+.user.yml
+package-lock.yml
 target/
 dbt_packages/
+dbt_modules/
 logs/
