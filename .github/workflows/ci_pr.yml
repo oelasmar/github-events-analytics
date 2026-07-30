@@ -1,0 +1,68 @@
+name: CI - Slim CI Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ DEV ]
+
+jobs:
+  dbt-pr-ci:
+    runs-on: ubuntu-latest
+    
+    # Definimos el esquema efímero dinámico basado en el número de PR
+    env:
+      PR_SCHEMA: "analytics_pr_${{ github.event.pull_request.number }}"
+      SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+      SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_PORT: ${{ secrets.SUPABASE_DB_PORT }}
+      SUPABASE_DB_NAME: ${{ secrets.SUPABASE_DB_NAME }}
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Configurar entorno de Python
+        run: uv sync --frozen
+
+      - name: Comprobar conexión dbt (dbt debug)
+        env:
+          DBT_SCHEMA_DEV: ${{ env.PR_SCHEMA }}
+        run: uv run dbt debug --project-dir . --profiles-dir .
+
+      - name: Ejecutar dbt build en esquema efímero (${{ env.PR_SCHEMA }})
+        env:
+          DBT_SCHEMA_DEV: ${{ env.PR_SCHEMA }}
+        run: |
+          echo "Ejecutando dbt build contra el esquema: $PR_SCHEMA"
+          uv run dbt build --project-dir . --profiles-dir .
+
+      - name: Cleanup - Eliminar esquema efímero en Supabase
+        if: always() # Se ejecuta SIEMPRE (incluso si dbt build falla o se cancela)
+        run: |
+          echo "Limpiando el esquema efímero: $PR_SCHEMA"
+          uv run python -c "
+          import psycopg2, os
+          
+          conn = psycopg2.connect(
+              host=os.getenv('SUPABASE_DB_HOST'),
+              user=os.getenv('SUPABASE_DB_USER'),
+              password=os.getenv('SUPABASE_DB_PASSWORD'),
+              port=os.getenv('SUPABASE_DB_PORT'),
+              dbname=os.getenv('SUPABASE_DB_NAME')
+          )
+          conn.autocommit = True
+          cur = conn.cursor()
+          schema_name = os.getenv('PR_SCHEMA')
+          
+          # Elimina el esquema y todo su contenido (CASCADE)
+          cur.execute(f'DROP SCHEMA IF EXISTS \"{schema_name}\" CASCADE;')
+          print(f'Esquema {schema_name} eliminado correctamente de Supabase.')
+          cur.close()
+          conn.close()
+          "
