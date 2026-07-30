@@ -1,0 +1,41 @@
+name: CD - Deploy to Production
+
+on:
+  push:
+    branches: [ main ] 
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+      SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_PORT: ${{ secrets.SUPABASE_DB_PORT }}
+      SUPABASE_DB_NAME: ${{ secrets.SUPABASE_DB_NAME }}
+      # Apunta directamente al esquema final de producción en Supabase
+      DBT_SCHEMA_DEV: ${{ secrets.DBT_SCHEMA_PROD }}
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Configurar entorno de Python
+        run: uv sync --frozen
+
+      - name: Instalar paquetes dbt
+        run: uv run dbt deps --project-dir . --profiles-dir .
+
+      - name: Comprobar conexión en Producción
+        run: uv run dbt debug --project-dir . --profiles-dir .
+
+      - name: Desplegar en Producción (dbt build)
+        run: |
+          echo "Desplegando en el esquema de producción: $DBT_SCHEMA_DEV"
+          uv run dbt build --project-dir . --profiles-dir .
