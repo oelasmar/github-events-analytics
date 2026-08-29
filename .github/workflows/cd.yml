@@ -10,7 +10,7 @@ on:
       - 'profiles.yml'              # Cambios en la conexión
       - 'pyproject.toml'            # Cambios en las dependencias de Python/uv
       - 'uv.lock'
-      - '.github/workflows/cd.yml' # El propio workflow
+      - '.github/workflows/cd.yml' # El propio workflow 
 
 jobs:
   deploy-prod:
