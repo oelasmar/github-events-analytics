@@ -156,9 +156,9 @@ graph TD
 
 - **Arquitectura Medallion en Supabase:**
 <br>
-  * **Bronze (`storage`):** Ingesta cruda de eventos semi-estructurados en JSON desde la API de GitHub mediante Python.
-  * **Silver (`raw`):** Limpieza, de-duplicación, casting de tipos y filtrado inicial procesado con Python.
-  * **Gold (`analytics`):** Tablas de hechos incrementales (`fct_github_events`) y dimensiones (`dim_github_users`, `dim_github_repositories`) modeladas con dbt.
+  --> **Bronze (`storage`):** Ingesta cruda de eventos semi-estructurados en JSON desde la API de GitHub mediante Python.
+  --> **Silver (`raw`):** Limpieza, de-duplicación, casting de tipos y filtrado inicial procesado con Python.
+  --> **Gold (`analytics`):** Tablas de hechos incrementales (`fct_github_events`) y dimensiones (`dim_github_users`, `dim_github_repositories`) modeladas con dbt.
   <br>
 
 - **Orquestación Containerizada con Docker & Airflow:** Programación modular (cada 5 minutos) de las tareas de extracción, carga e invocación de transformaciones (dbt) mediante Apache Airflow desplegado localmente en contenedores Docker (`Docker Compose`).
