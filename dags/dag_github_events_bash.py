@@ -2,9 +2,9 @@ import subprocess
 import logging
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
-
+ 
 PROYECTO_PATH = "/opt/airflow"
-
+ 
 # Configuración por defecto para las tareas
 default_args = {
     "owner": "airflow",

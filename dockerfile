@@ -11,3 +11,4 @@ RUN uv sync --frozen --no-cache
 COPY . .
 
 CMD ["uv", "run", "python", "./src/transform_silver.py"]
+ 

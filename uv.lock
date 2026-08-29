@@ -1,7 +1,7 @@
 version = 1
 revision = 3
 requires-python = ">=3.11"
-
+ 
 [[package]]
 name = "agate"
 version = "1.9.1"

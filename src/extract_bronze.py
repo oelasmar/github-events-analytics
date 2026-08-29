@@ -16,7 +16,6 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 BUCKET_NAME = "github-events-bronze"
 
-
 # Funciones
 def get_supabase_client() -> Client:
     if not SUPABASE_URL or not SUPABASE_KEY:

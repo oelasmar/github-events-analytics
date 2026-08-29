@@ -21,4 +21,4 @@ dbt_github_analytics:
       dbname: "{{ env_var('SUPABASE_DB_NAME') }}"
       schema: "{{ env_var('DBT_SCHEMA_PROD') }}" # Esquema donde dbt creará las tablas
       threads: 4
-      keepalives_idle: 0
+      keepalives_idle: 0 
