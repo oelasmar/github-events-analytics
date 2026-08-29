@@ -3,6 +3,14 @@ name: CD - Deploy to Production
 on:
   push:
     branches: [ main ] 
+    paths:
+      - 'dbt_github_analytics/**'   # Cambios en los modelos/SQL de dbt
+      - 'dbt_project.yml'           # Cambios en la configuración de dbt
+      - 'packages.yml'              # Cambios en las dependencias de dbt
+      - 'profiles.yml'              # Cambios en la conexión
+      - 'pyproject.toml'            # Cambios en las dependencias de Python/uv
+      - 'uv.lock'
+      - '.github/workflows/cd.yml' # El propio workflow
 
 jobs:
   deploy-prod:
